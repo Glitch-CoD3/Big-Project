@@ -73,5 +73,41 @@ userSchema.pre("save", async function(next){
 userSchema.methods.comparePassword = async function(password) {
     return bcrypt.compare(password, this.password);
 }
+
+
+//JWT token generation methods 
+userSchema.methods.generateAccessToken = function() {
+    return jwt.sign(
+        {
+            _id: this.id,
+            email:this.email,
+            username:this.username,
+            fullName: this.fullName,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+        }
+    );
+}
+
+//refresh token generation method
+userSchema.methods.generateRefreshToken = function() {
+    return jwt.sign(
+        {
+            _id: this.id,
+            email:this.email,
+            username:this.username,
+            fullName: this.fullName,
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+        }
+    );
+}   
+
 export const User= mongoose.model("User", userSchema)
 
