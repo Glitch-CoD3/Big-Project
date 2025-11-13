@@ -1,0 +1,39 @@
+import { v2 as cloudinary } from 'cloudinary';
+
+import fs from 'fs';    //file read write remove operations. fs= file system
+
+
+
+    // Configuration
+    cloudinary.config({ 
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+        api_key: process.env.CLOUDINARY_API_KEY, 
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    
+
+
+    // Uploads a file to Cloudinary
+    export const uploadToCloudinary = async (LocalFilePath) => {
+        try {
+            //check if file is locally available
+            if(!LocalFilePath) return null;
+
+            //uploasd to cloudinary
+            const response= await cloudinary.uploader.upload (LocalFilePath, {
+                resource_type: "auto",  //jpeg, png, pdf, doc, mp4
+            })
+
+            //file has been uploaded, now we can remove from local storage
+            console.log("File uploaded to Cloudinary successfully", response.url);
+            return response;
+
+        } catch (error) {
+            fs.unlinkSync(LocalFilePath);  //remove file from local storage if error occurs during upload
+            console.error("Error uploading file to Cloudinary", error);
+            return null;
+            
+        }
+    }
+
+    export { cloudinary };
