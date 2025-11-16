@@ -64,14 +64,14 @@ const userSchema= new Schema(
 userSchema.pre("save", async function(next){
     if(!this.modifiedPaths("password")) return next();
 
-    this.passsword= bcrypt.hash(this.password, 10);
+    this.password= await bcrypt.hash(this.password, 10);
     next();
 })
 
 
 //comapre password method for login validation 
 userSchema.methods.comparePassword = async function(password) {
-    return bcrypt.compare(password, this.password);
+    return await bcrypt.compare(password, this.password);
 }
 
 

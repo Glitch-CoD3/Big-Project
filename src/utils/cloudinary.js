@@ -36,4 +36,4 @@ import fs from 'fs';    //file read write remove operations. fs= file system
         }
     }
 
-    export { cloudinary };
+    export {uploadToCloudinary};

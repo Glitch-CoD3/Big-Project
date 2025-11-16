@@ -17,11 +17,17 @@ app.use(cors({
     credentials:true
 })) 
 
-
-
-
 app.use(cookieParser())
 
+
+//import routes
+import userRoutes from './routes/user.routes.js'
+
+
+
+//route declations
+
+app.use("/api/v1/users", userRoutes)
 
 
 
