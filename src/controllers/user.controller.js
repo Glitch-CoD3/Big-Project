@@ -1,8 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
-import User from "../models/user.models.js"
+import { User } from "../models/user.models.js";
 import {uploadToCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
+
 
 const registerUser=asyncHandler( async(req,res)=>{
     //get user data from frontend
@@ -17,7 +18,7 @@ const registerUser=asyncHandler( async(req,res)=>{
     // }    I can use this for every field or following below
 
     if (
-        [fullName, email, username, password].some(  (fields)=> 
+        [fullName, email, username, password].some(  (field)=> 
         field?.trim() ===""  )
     ) {
         throw new ApiError(400 , "All fields are required")

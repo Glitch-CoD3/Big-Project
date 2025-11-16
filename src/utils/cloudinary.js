@@ -14,7 +14,7 @@ import fs from 'fs';    //file read write remove operations. fs= file system
 
 
     // Uploads a file to Cloudinary
-    export const uploadToCloudinary = async (LocalFilePath) => {
+     const uploadToCloudinary = async (LocalFilePath) => {
         try {
             //check if file is locally available
             if(!LocalFilePath) return null;
