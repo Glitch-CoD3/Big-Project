@@ -1,34 +1,34 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";     //jwt package for token generation.
 import bcrypt from "bcrypt";       //bcrypt package for password hashing.
 
-const userSchema= new Schema(
+const userSchema = new Schema(
     {
-        username:{
-            type:String,
-            required:true,
-            unique:true,
-            trim:true,
-            lowercase:true,
-            index:true
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
+            index: true
         },
-        email:{
-            type:String,
-            required:true,
-            unique:true,
-            trim:true,
-            lowercase:true,
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
 
         },
 
-        fullName:{
-            type:String,
-            required:true,
-            trim:true,
-            index:true
-            
+        fullName: {
+            type: String,
+            required: true,
+            trim: true,
+            index: true
+
         },
-        
+
         avatar: {
             type: String,  //cloudinary string
             required: true,
@@ -55,33 +55,33 @@ const userSchema= new Schema(
             type: String,
         }
 
-        
-    }, {timestamps:true})
+
+    }, { timestamps: true })
 
 
 
-    //password encryption before saving user document
-userSchema.pre("save", async function(next){
-    if(!this.modifiedPaths("password")) return next();
+//password encryption before saving user document
+userSchema.pre("save", async function (next) {
+    if (!this.modifiedPaths("password")) return next();
 
-    this.password= await bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
     next();
 })
 
 
 //comapre password method for login validation 
-userSchema.methods.comparePassword = async function(password) {
+userSchema.methods.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 
 
 //JWT token generation methods 
-userSchema.methods.generateAccessToken = function() {
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this.id,
-            email:this.email,
-            username:this.username,
+            email: this.email,
+            username: this.username,
             fullName: this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,
@@ -93,12 +93,12 @@ userSchema.methods.generateAccessToken = function() {
 }
 
 //refresh token generation method
-userSchema.methods.generateRefreshToken = function() {
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this.id,
-            email:this.email,
-            username:this.username,
+            email: this.email,
+            username: this.username,
             fullName: this.fullName,
         },
         process.env.REFRESH_TOKEN_SECRET,
@@ -107,7 +107,7 @@ userSchema.methods.generateRefreshToken = function() {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
         }
     );
-}   
+}
 
-export const User= mongoose.model("User", userSchema)
+export const User = mongoose.model("User", userSchema)
 
