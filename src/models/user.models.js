@@ -62,7 +62,7 @@ const userSchema = new Schema(
 
 //password encryption before saving user document
 userSchema.pre("save", async function (next) {
-    if (!this.modifiedPaths("password")) return next();
+    if (!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password, 10);
     next();
@@ -70,7 +70,7 @@ userSchema.pre("save", async function (next) {
 
 
 //comapre password method for login validation 
-userSchema.methods.comparePassword = async function (password) {
+userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 
@@ -97,9 +97,6 @@ userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this.id,
-            email: this.email,
-            username: this.username,
-            fullName: this.fullName,
         },
         process.env.REFRESH_TOKEN_SECRET,
 

@@ -5,16 +5,16 @@ import { uploadToCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 //method for generate access and refresh token
-const generateRefreshAndAccessTokens = async (userID) => {
+const generateRefreshAndAccessTokens = async (userId) => {
     try {
-        const user= await User.findByID(userID);
+        const user= await User.findById(userId);
         
         const accessToken= user.generateAccessToken();
         const refreshToken= user.generateRefreshToken();
 
         //store refresh token in db
         user.refreshTokens = refreshToken;
-        await user.save(validatedBeforeSave=false);
+        await user.save({ validateBeforeSave: false });
 
         return {accessToken, refreshToken};
 
@@ -119,12 +119,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
 //user login
 
-const loginUser= asyncHandler(async(re,res)=>{
+const loginUser= asyncHandler(async(req,res)=>{
     //req body ->data
     const {username, email, password} = req.body
 
     //check username or emial provided
-    if(!username || !email){
+    if( !(username || email) ){
         throw new ApiError(400,"Username or email is required");
     }
 
