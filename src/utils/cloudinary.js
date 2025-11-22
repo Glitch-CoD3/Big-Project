@@ -20,7 +20,7 @@ const uploadToCloudinary = async (LocalFilePath) => {
         if (!LocalFilePath) return null;
 
         //uploasd to cloudinary
-        const response = await cloudinary.uploader.upload(LocalFilePath, {
+        const response = await cloudinary.uploader.upload_large(LocalFilePath, {
             resource_type: "auto",  //jpeg, png, pdf, doc, mp4
         })
 
