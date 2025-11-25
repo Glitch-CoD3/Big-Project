@@ -1,10 +1,11 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
+import { User } from "../models/user.models.js";
 
 export const verifyJWT = asyncHandler(async (req, _ , next) => { //"_" beacuse here no response return
     try {
-        const token = req.cookies?.accessToken || req.headers("Authorization")?.replace("Bearer ", "");
+        const token = req.cookies?.accessToken || req.headers["authorization"]?.replace("Bearer ", "");
         
         if (!token) {
             throw new ApiError(401, "Access token is missing");
