@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.models.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+
 
 //method for generate access and refresh token
 const generateRefreshAndAccessTokens = async (userId) => {
@@ -14,7 +17,7 @@ const generateRefreshAndAccessTokens = async (userId) => {
         const refreshToken = user.generateRefreshToken();
 
         //store refresh token in db
-        user.refreshTokens = refreshToken;
+        user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
 
         return { accessToken, refreshToken };
@@ -202,56 +205,41 @@ const logOutUser = asyncHandler(async (req, res) => {
 
 
 //add refreshAccessToken endpoint
-const refreshAccessTokens = asyncHandler(async (req, res) => {
+const refreshAccessToken = asyncHandler(async (req, res) => {
 
-    const incomeingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-    if (!incomeingRefreshToken) {
-        throw new ApiError(401, "Unauthorised request")
+    const incomingRefreshToken =
+        req.body?.refreshToken || req.cookies?.refreshToken;
 
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request");
     }
 
-    //verify this token
-    try {
-        const decodedToken = jwt.verify(
-            incomeingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        )
+    const decodedToken = jwt.verify(
+        incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+    );
 
-        const user = User.findById(decodedToken?._id)
-        //check user coming or not
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
+    const user = await User.findById(decodedToken._id);
 
-        if (incomeingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Refresh token is expired or used")
-        }
-
-        const cookieOptions = {
-            httpOnly: true,
-            secure: true,
-        };
-
-        const { accessToken, refreshToken } = await generateRefreshAndAccessTokens(user._id);
-        //response
-        return res
-            .status(200)
-            .cookie("refreshToken", refreshToken, cookieOptions)
-            .cookie("accessToken", accessToken, cookieOptions)
-            .json(
-                new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged in successfully")
-            );
-
-    } catch (error) {
-        throw new ApiError(401, "Invalid refresh token")
+    if (!user || user.refreshToken !== incomingRefreshToken) {
+        throw new ApiError(401, "Refresh token is invalid");
     }
-})
+
+    const accessToken = user.generateAccessToken();
+
+    res.status(200).json({
+        success: true,
+        accessToken
+    });
+});
+
+
 
 
 //change current password
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword, confirmPassword } = req.body;  //take from user (frontend)
-    if (newPassword !== oldPassword) {
+    if (confirmPassword !== newPassword && oldPassword !== newPassword) {
         throw new ApiError(401, "New password and confirm password should be matched! ");
     }
 
@@ -453,7 +441,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 })
 
 
-const getWatchHistory = asyncHandler(async(req, res) => {
+const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
@@ -485,8 +473,8 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
+                        $addFields: {
+                            owner: {
                                 $first: "$owner"
                             }
                         }
@@ -497,14 +485,14 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     ])
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user[0].watchHistory,
-            "Watch history fetched successfully"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0].watchHistory,
+                "Watch history fetched successfully"
+            )
         )
-    )
 })
 
 
@@ -512,7 +500,7 @@ export {
     registerUser,
     loginUser,
     logOutUser,
-    refreshAccessTokens,
+    refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
     updateUserAvatar,
