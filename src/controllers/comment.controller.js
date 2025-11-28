@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { Comment } from "../models/comment.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.models.js";
-
+import mongoose from "mongoose"; //for toggle-like function
 
 const getVideoComments = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
@@ -90,7 +90,7 @@ const replyToComment = asyncHandler(async (req, res) => {
     }
 
     const reply = await Comment.create({
-        videoComment: comment,
+        comment: comment,
         video: parentComment.video,
         owner: userId,
         parentComment: parentComment._id
@@ -102,44 +102,60 @@ const replyToComment = asyncHandler(async (req, res) => {
 });
 
 
+
 const toggleLikeComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
         throw new ApiError(404, "Comment not found");
     }
 
-    const alreadyLiked = comment.likes.includes(userId);
+    // Convert every ID to string for correct comparison
+    const likesArray = comment.likeComment.map(id => id.toString());
+
+    const alreadyLiked = likesArray.includes(userId);
 
     if (alreadyLiked) {
-        // ✅ Remove like → NULL state
-        comment.likes.pull(userId);
-        comment.likeCount -= 1;
+        // Unlike
+        await Comment.findByIdAndUpdate(
+            commentId,
+            { $pull: { likeComment: userId } }
+        );
     } else {
-        // ✅ Add like
-        comment.likes.push(userId);
-        comment.likeCount += 1;
+        // Like
+        await Comment.findByIdAndUpdate(
+            commentId,
+            { $addToSet: { likeComment: userId } }
+        );
     }
 
-    await comment.save();
+    // Get updated count using aggregation
+    const [aggregateResult] = await Comment.aggregate([
+        { $match: { _id: comment._id } },
+        {
+            $project: {
+                likeCount: { $size: { $ifNull: ["$likeComment", []] } }
+            }
+        }
+    ]);
 
-    return res.status(200).json(
-        new ApiResponse(
-            200,
-            { likeCount: comment.likeCount },
-            alreadyLiked ? "Like removed" : "Comment liked"
-        )
-    );
+    return res.status(200).json({
+        success: true,
+        liked: !alreadyLiked,
+        likeCount: aggregateResult.likeCount,
+        message: alreadyLiked ? "Comment unliked" : "Comment liked"
+    });
 });
+
 
 
 
 const editComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
     const { comment } = req.body || {};
-    
+
     const userId = req.user._id;
 
     if (!commentId) {
@@ -164,8 +180,8 @@ const editComment = asyncHandler(async (req, res) => {
         commentId,
         {
             $set: {
-                 comment: comment
-                 }
+                comment: comment
+            }
         },
         { new: true }
     );

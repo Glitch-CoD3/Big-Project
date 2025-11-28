@@ -26,8 +26,9 @@ const commentSchema = new Schema({
         },
 
         likeComment:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"User"
+            type: [mongoose.Schema.Types.ObjectId],
+            ref:"User",
+            default: [],
         },
 
 },{timestamps:true})
