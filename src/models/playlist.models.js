@@ -9,20 +9,31 @@ const playlistSchema = new Schema({
     description: {
         type: String,
         default: "",
-        required:true,
     },
 
     videos: [
         {
-            type: Schema.Types.ObjectId,
-            ref: "Video",
-
+            video: {
+                type: Schema.Types.ObjectId,
+                ref: "Video",
+                required: true,
+            },
+            position: Number
         }
     ],
+
+    visibility: {
+        type: String,
+        enum: ["public", "private", "unlisted"],
+        default: "public",
+
+    },
 
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User",
+        required:true,
+        index:true
     }
 
 
