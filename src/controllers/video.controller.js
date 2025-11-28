@@ -148,7 +148,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             throw new ApiError(500, "Failed to upload thumbnail");
         }
 
-        const updatedVideo = await Video.findByIdAndUpdate(
+        const updateVideo = await Video.findByIdAndUpdate(
             videoId,
             {
                 $set: {
@@ -167,7 +167,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
+    .json(new ApiResponse(200, updateVideo, "Video updated successfully"));
 });
 
 

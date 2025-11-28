@@ -4,21 +4,31 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const commentSchema = new Schema({
 
-        content:{
+        comment:{
             type: String,
             required:true
         },
 
         video:{
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Video",
             
         },
 
         owner:{
-            type: Schema.Types.ObjectId,
-            ref: "Video",
-        }
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+
+        parentComment:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment",
+        },
+
+        likeComment:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"User"
+        },
 
 },{timestamps:true})
 
