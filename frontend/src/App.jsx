@@ -1,10 +1,21 @@
+import { Sidebar } from './Pages/Home/Sidebar/Sidebar.jsx'
 import './App.css'
+import { Header } from './Pages/Home/Header/Header'
+import { PageContent } from './Pages/Videoplay/ContentPage.jsx'
 
 function App() {
 
   return (
     <>
-     <h1 className='bg-blue-500 text-white font-bold text-2xl'>Hello Vite</h1>
+     <div className='max-h-screen flex flex-col'>
+      <Header />
+      <Sidebar />
+      
+
+      <main className="pt-10 md:pl-10">
+        <PageContent />
+      </main>
+     </div>
     </>
   )
 }
