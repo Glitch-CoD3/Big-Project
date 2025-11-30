@@ -1,7 +1,7 @@
 import React from "react";
-import VideoCard from "./VideoCard";
+import VideoCard from "../../Components/VideoCard.jsx"
 import logo from "/logo.png"
-
+import FetchVideos from "../../api/Video.jsx";
 const videos = Array.from({ length: 12 }).map((_, index) => ({
   id: index,
   thumbnail:logo,
@@ -13,7 +13,7 @@ const videos = Array.from({ length: 12 }).map((_, index) => ({
   duration: "12:45"
 }));
 
-export const PageContent = () => {
+export const ContentPage = () => {
   return (
     <main className="pt-16 md:pl-60 bg-gray-50 min-h-screen">
       <div className="px-4 pb-10">
@@ -33,6 +33,9 @@ export const PageContent = () => {
         </div>
 
       </div>
+
+      <div> <FetchVideos /> </div>
     </main>
+
   );
 };

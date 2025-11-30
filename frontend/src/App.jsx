@@ -1,7 +1,7 @@
-import { Sidebar } from './Pages/Home/Sidebar/Sidebar.jsx'
+import { Sidebar } from './Components/Sidebar.jsx'
 import './App.css'
-import { Header } from './Pages/Home/Header/Header'
-import { PageContent } from './Pages/Videoplay/ContentPage.jsx'
+import { Header } from './Components/Header.jsx'
+import { ContentPage } from './Pages/Home/ContentPage.jsx'
 
 function App() {
 
@@ -13,7 +13,7 @@ function App() {
       
 
       <main className="pt-10 md:pl-10">
-        <PageContent />
+        <ContentPage />
       </main>
      </div>
     </>
