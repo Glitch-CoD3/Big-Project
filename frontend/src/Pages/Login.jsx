@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ToastContainer } from 'react-toastify'
-import { handleError } from "../utils/ApiError";
+import { handleError, handleSuccess } from "../utils/ApiError";
 import axios from "axios";
-import { navigate } from "react-router-dom";
+import { useNavigate  } from "react-router-dom";
+
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+  const Navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,7 +28,6 @@ const Login = () => {
 
     // Call your API here
     const { email, password } = formData;
-    console.log("Emial: ", email, "Password: ", password);
 
     if (!email || !password) {
       return handleError("All fields are required");
@@ -43,7 +44,23 @@ const Login = () => {
         }
       );
 
-      localStorage.setItem("user", JSON.stringify(response.data.data));
+      
+      
+      const result = await response.data;  //this come from backend response and store in result
+      const { success, message, error } = result;
+
+      if (success) {
+        localStorage.setItem("user", JSON.stringify(response.data.data));
+        handleSuccess(message);
+
+        setTimeout(() => {
+          Navigate("/home");
+        }, 1000)
+
+      } else if (error) {
+        const details = error?.details[0]?.message;
+        handleError(details || "Login failed");
+      }
 
     } catch (error) {
       handleError(error.response?.data?.message || error.message);

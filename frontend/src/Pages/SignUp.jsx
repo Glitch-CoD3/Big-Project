@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { handleError } from "../utils/ApiError";
+import { handleError, handleSuccess } from "../utils/ApiError";
 import axios from "axios";
+import { useNavigate  } from "react-router-dom";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -14,15 +15,16 @@ const SignUp = () => {
     coverImage: null
   });
 
+  const Navigate = useNavigate();
 
   //must be read later
   const handleChange = (e) => {
     const { name, type, value, files } = e.target;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]: type === "file" ? files[0] : value
-  }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "file" ? files[0] : value
+    }));
   };
 
 
@@ -56,6 +58,16 @@ const SignUp = () => {
       );
 
       console.log(response.data);
+      const result = await response.data;
+      const { success, message } = result;
+
+      if (success) {
+        handleSuccess(message);
+        
+        setTimeout(() => {
+          Navigate("/login");
+        }, 1000);
+      }
     } catch (error) {
       handleError(error.response?.data?.message || error.message);
     }
