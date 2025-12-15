@@ -1,11 +1,13 @@
-import React from 'react';
+import { toast } from "react-toastify";
 
-function ApiError({ message }) {
-  return (
-    <div style={{ color: 'red', margin: '1rem 0', fontWeight: 'bold' }}>
-      {message || 'Something went wrong. Please try again later.'}
-    </div>
-  );
+export const handleSuccess = (msg)=>{
+  toast.success( msg, {
+    position: 'top-right'
+  } )
 }
 
-export default ApiError;
+export const handleError = (msg)=>{
+  toast.error( msg, {
+    position: 'top-right'
+  } )
+}

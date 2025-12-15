@@ -1,29 +1,66 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { handleError } from "../utils/ApiError";
+import axios from "axios";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
+    fullName: "",
     username: "",
     email: "",
     password: "",
-    newPassword: ""
+    avatar: null,
+    coverImage: null
   });
 
+
+  //must be read later
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, type, value, files } = e.target;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: type === "file" ? files[0] : value
+  }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload
 
-    if (formData.password !== formData.newPassword) {
-      alert("Passwords do not match!");
-      return;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { fullName, username, email, password, avatar, coverImage } = formData;
+
+    if (!fullName || !username || !email || !password) {
+      return handleError("All fields are required");
     }
 
-    console.log("Sign Up Data:", formData);
-    alert("Sign up successful!");
-    // Call your API here
+    try {
+      const data = new FormData();
+      data.append("fullName", fullName);
+      data.append("username", username);
+      data.append("email", email);
+      data.append("password", password);
+      data.append("coverImage", formData.coverImage);
+      data.append("avatar", formData.avatar);
+
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/users/register",
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+
+      console.log(response.data);
+    } catch (error) {
+      handleError(error.response?.data?.message || error.message);
+    }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-100 to-gray-200">
@@ -32,6 +69,21 @@ const SignUp = () => {
           Create Account
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* fullName */}
+          <div>
+            <label className="block text-gray-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+
+            />
+          </div>
+          {/* username */}
           <div>
             <label className="block text-gray-700 mb-1">Username</label>
             <input
@@ -41,10 +93,11 @@ const SignUp = () => {
               onChange={handleChange}
               placeholder="Enter your username"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-              required
+
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-gray-700 mb-1">Email</label>
             <input
@@ -58,6 +111,7 @@ const SignUp = () => {
             />
           </div>
 
+          {/* password */}
           <div>
             <label className="block text-gray-700 mb-1">Password</label>
             <input
@@ -71,16 +125,28 @@ const SignUp = () => {
             />
           </div>
 
+
+          {/* Avatar */}
           <div>
-            <label className="block text-gray-700 mb-1">Confirm Password</label>
+            <label className="block text-gray-700 mb-1">Avatar</label>
             <input
-              type="password"
-              name="newPassword"
-              value={formData.newPassword}
+              type="file"
+              name="avatar"
+              accept="image/*"
               onChange={handleChange}
-              placeholder="Confirm your password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+
+          {/* Cover Image */}
+          <div>
+            <label className="block text-gray-700 mb-1">Cover Image</label>
+            <input
+              type="file"
+              name="coverImage"
+              accept="image/*"
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg"
             />
           </div>
 
@@ -92,11 +158,16 @@ const SignUp = () => {
           </button>
         </form>
 
+        <ToastContainer />
+
         <p className="text-center text-gray-500 mt-4">
           Already have an account?{" "}
-          <span className="text-purple-500 font-medium cursor-pointer hover:underline">
-            Login
-          </span>
+          <Link
+            to="/login"
+            className="text-purple-500 font-medium cursor-pointer hover:underline"
+          >
+            login
+          </Link>
         </p>
       </div>
     </div>

@@ -1,21 +1,35 @@
-import { Sidebar } from './Components/Sidebar.jsx'
 import './App.css'
-import { Header } from './Components/Header.jsx'
-import { ContentPage } from './Pages/Home/ContentPage.jsx'
+import { useEffect } from 'react'
+import axios from 'axios'
+import {Navigate, Route, Routes} from "react-router-dom"
+import Home from './Pages/Home/Home.jsx'
+import SignUp from './Pages/SignUp.jsx'
+import Login from './Pages/Login.jsx'
 
 function App() {
 
+//   useEffect(() => {
+//   const getData = async () => {
+//     try {
+//       const response = await axios.get("http://localhost:8000/api/v1/users/register");
+//       console.log(response.data);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//     }
+//   };
+
+//   getData();
+// }, []);
+
+
   return (
     <>
-     <div className='max-h-screen flex flex-col'>
-      <Header />
-      <Sidebar />
-      
-
-      <main className="pt-10 md:pl-10">
-        <ContentPage />
-      </main>
-     </div>
+     <Routes>
+      <Route path="/" element= {<Navigate to='/login'/>}  />
+      <Route path="/home" element= {<Home />}  />
+      <Route path="/signup" element= {<SignUp />}  />
+      <Route path="/login" element= {<Login />}  />
+     </Routes>
     </>
   )
 }

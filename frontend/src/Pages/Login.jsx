@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { ToastContainer } from 'react-toastify'
+import { handleError } from "../utils/ApiError";
+import axios from "axios";
+import { navigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -7,15 +12,43 @@ const Login = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
 
-    console.log("Login Data:", formData);
-    alert("Login successful!");
+
     // Call your API here
+    const { email, password } = formData;
+    console.log("Emial: ", email, "Password: ", password);
+
+    if (!email || !password) {
+      return handleError("All fields are required");
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/users/login",
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      localStorage.setItem("user", JSON.stringify(response.data.data));
+
+    } catch (error) {
+      handleError(error.response?.data?.message || error.message);
+    }
+
   };
 
   return (
@@ -59,12 +92,18 @@ const Login = () => {
           </button>
         </form>
 
+        <ToastContainer />
+
         <p className="text-center text-gray-500 mt-4">
           Don't have an account?{" "}
-          <span className="text-purple-500 font-medium cursor-pointer hover:underline">
+          <Link
+            to="/signup"
+            className="text-purple-500 font-medium cursor-pointer hover:underline"
+          >
             Sign Up
-          </span>
+          </Link>
         </p>
+
       </div>
     </div>
   );
