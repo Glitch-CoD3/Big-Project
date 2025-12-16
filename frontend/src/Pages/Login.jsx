@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ToastContainer } from 'react-toastify'
 import { handleError, handleSuccess } from "../utils/ApiError";
 import axios from "axios";
-import { useNavigate  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 const Login = () => {
@@ -44,14 +44,22 @@ const Login = () => {
         }
       );
 
-      
-      
+
+
       const result = await response.data;  //this come from backend response and store in result
       const { success, message, error } = result;
 
       if (success) {
         localStorage.setItem("user", JSON.stringify(response.data.data));
         handleSuccess(message);
+
+        const { user, accessToken, refreshToken } = response.data.data;
+
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("name", user.fullName);
+        localStorage.setItem("username", user.username);
+        localStorage.setItem("email", user.email);
 
         setTimeout(() => {
           Navigate("/home");
