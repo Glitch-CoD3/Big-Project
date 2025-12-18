@@ -7,6 +7,7 @@ import SignUp from './Pages/SignUp.jsx'
 import Login from './Pages/Login.jsx'
 import UploadVideo from './Pages/UploadVideo/UploadVideo.jsx'
 import { RefreshHandler } from './utils/RefreshHandler.jsx'
+import Watch from './Pages/VideoWatch.jsx'
 
 function App() {
 
@@ -43,6 +44,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/upload" element={<UploadVideo />} />
+        <Route path="/watch/:videoId" element={<Watch />} />
 
       </Routes>
     </>

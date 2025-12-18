@@ -29,7 +29,7 @@ const getAllvideos = asyncHandler(async (req, res) => {
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit))
-        .populate("owner", "username email")
+        .populate("owner", "username email avatar fullName")
         .lean();
 
     // Use estimatedDocumentCount for faster approximate total
@@ -107,7 +107,10 @@ const getVideoById = asyncHandler(async (req, res) => {
     }
 
     //Use Video.findById(videoId) to fetch the video.
-    const video = await Video.findById(videoId).populate("owner", "name email");
+   const video = await Video.findById(videoId)
+    .populate("owner", "username email avatar fullName")
+    .lean();
+
 
     //Throw 404 if not found.
     if (!video) {
