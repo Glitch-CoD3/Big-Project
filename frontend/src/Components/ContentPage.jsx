@@ -2,7 +2,7 @@ import FetchVideos from "../api/FetchVideo.jsx";
 
 export const ContentPage = () => {
   return (
-    <main className="pt-16 md:pl-60 bg-gray-50 min-h-screen">
+    <main className="pt-16 md:pl-60 bg-black min-h-screen">
       <div className="px-4 pb-10">
         <div
           className="

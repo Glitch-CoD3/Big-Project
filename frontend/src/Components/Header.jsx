@@ -1,4 +1,4 @@
-import React from "react";
+import React, { use } from "react";
 import {
   Menu,
   Search,
@@ -7,16 +7,28 @@ import {
   Bell,
   User
 } from "lucide-react";
-import logo from "/logo.png"
+import logo from "/image.png"
+import { useNavigate } from "react-router-dom";
+
+
+
+
+
 
 export const Header = () => {
+  const navigate = useNavigate();
+  const uploadVideo = () => {
+    setTimeout(() => {
+      navigate("/upload");
+    }, 1000);
+  };
   return (
-    <header className="fixed top-0 left-0 w-full bg-white border-b z-50">
+    <header className="fixed top-0 left-0 w-full bg-gray-900 border-b z-50">
       <div className="flex items-center justify-between px-4 h-14">
-        
+
         {/* LEFT SECTION */}
         <div className="flex items-center gap-4 flex-shrink-0">
-          <button className="p-2 rounded-full hover:bg-gray-100">
+          <button className="p-2 rounded-full hover:bg-gray-700">
             <Menu size={22} />
           </button>
 
@@ -31,14 +43,14 @@ export const Header = () => {
             <input
               type="text"
               placeholder="Search"
-              className="w-full px-4 py-1.5 border border-gray-300 rounded-l-full focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-1.5 border bg-gray-700 border-gray-800 rounded-l-full focus:outline-none focus:border-blue-500"
             />
-            <button className="px-5 border border-l-0 border-gray-300 rounded-r-full bg-gray-100 hover:bg-gray-200">
+            <button className="px-5 border border-l-0 border-gray-900 rounded-r-full bg-gray-700 hover:bg-gray-800">
               <Search size={18} />
             </button>
           </div>
 
-          <button className="ml-3 p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+          <button className="ml-3 p-2 rounded-full bg-gray-800 hover:bg-gray-700">
             <Mic size={18} />
           </button>
         </div>
@@ -50,15 +62,15 @@ export const Header = () => {
             <Search size={22} />
           </button>
 
-          <button className="p-2 rounded-full hover:bg-gray-100">
-            <Video size={22} />
+          <button className="p-2 rounded-full bg-gray-800 hover:bg-gray-700">
+            <Video size={22} onClick={uploadVideo} />
           </button>
 
-          <button className="p-2 rounded-full hover:bg-gray-100">
+          <button className="p-2 rounded-full bg-gray-800 hover:bg-gray-700">
             <Bell size={22} />
           </button>
 
-          <button className="ml-2 w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+          <button className="ml-2 w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
             <User size={18} />
           </button>
         </div>

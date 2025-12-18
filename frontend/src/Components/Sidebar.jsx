@@ -26,7 +26,7 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="fixed top-14 left-0 h-[calc(100vh-3.5rem)] w-60 bg-white border-r hidden md:block">
+    <aside className="fixed top-14 left-0 h-[calc(100vh-3.5rem)] w-60 bg-gray-900 border-r hidden md:block">
 
       <div className="h-full overflow-y-auto px-2 py-3 space-y-6">
 
@@ -76,7 +76,7 @@ const SidebarItem = ({ icon, label, active, onClick }) => {
     <div
       onClick={onClick}
       className={`flex items-center gap-4 px-3 py-2 rounded-lg cursor-pointer
-        ${active ? "bg-gray-200 font-medium" : "hover:bg-gray-100"}`}
+        ${active ? "bg-gray-700 font-medium" : "hover:bg-gray-700"}`}
     >
       <span className="text-lg">{icon}</span>
       <span className="text-sm">{label}</span>

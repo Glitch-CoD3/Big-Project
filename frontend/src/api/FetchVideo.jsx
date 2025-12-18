@@ -19,8 +19,6 @@ function FetchVideos() {
           },
         });
 
-        console.log("Fetched Videos:", response.data.data);
-
         // videos are inside data.videos according to your API
         setVideos(response.data.data.videos);
       } catch (err) {

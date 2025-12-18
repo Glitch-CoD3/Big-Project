@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import Home from './Pages/Home/Home.jsx'
 import SignUp from './Pages/SignUp.jsx'
 import Login from './Pages/Login.jsx'
+import UploadVideo from './Pages/UploadVideo/UploadVideo.jsx'
 import { RefreshHandler } from './utils/RefreshHandler.jsx'
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/home" element={<PrivateRoute element={<Home />} />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/upload" element={<UploadVideo />} />
 
       </Routes>
     </>

@@ -1,6 +1,21 @@
 import React from "react";
 
 const VideoCard = ({ video }) => {
+  // Calculate time ago
+  const getTimeAgo = (dateString) => {
+    const uploadDate = new Date(dateString);
+    const now = new Date();
+    const diffTime = now - uploadDate;
+
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    if (diffHours < 24) {
+      return diffHours <= 0 ? "Just now" : `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    }
+
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  };
+
   return (
     <div className="w-full cursor-pointer">
       {/* Thumbnail */}
@@ -8,10 +23,7 @@ const VideoCard = ({ video }) => {
         <img
           src={video.thumbnail || "/logo2.png"}
           alt={video.title}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/logo2.png";
-          }}
+          onError={(e) => { e.target.onerror = null; e.target.src = "/logo2.png"; }}
           className="w-full h-full object-cover"
         />
 
@@ -28,11 +40,8 @@ const VideoCard = ({ video }) => {
         {/* Channel Avatar */}
         <img
           src={video.avatar || "/logo.png"}
-          alt={video.owner?.email || "Channel"}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/logo.png";
-          }}
+          alt={video.owner?.username || "Channel"}
+          onError={(e) => { e.target.onerror = null; e.target.src = "/logo.png"; }}
           className="w-10 h-10 rounded-full object-cover"
         />
 
@@ -43,12 +52,13 @@ const VideoCard = ({ video }) => {
             {video.title}
           </h3>
 
-          {/* Channel Name */}
-          <p className="text-xs text-gray-600 mt-1">{video.owner?.username || "Channel"}</p>
-
-          {/* Views and Upload Time */}
-          <p className="text-xs text-gray-600">
-            {video.viewCount} views · {new Date(video.createdAt).toLocaleDateString()}
+          {/* Username, Views, Time Ago on same line */}
+          <p className="text-md text-gray-400 mt-1 flex flex-wrap gap-2">
+            <span>{video.owner?.username || "Channel"}</span>
+          </p>
+          <p className="text-md text-gray-400 flex flex-wrap gap-2"> 
+            <span>{video.viewCount} views</span>
+            <span> · {getTimeAgo(video.createdAt)}</span>
           </p>
         </div>
       </div>
