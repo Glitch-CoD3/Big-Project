@@ -214,11 +214,56 @@ const togglePublishVideo = asyncHandler(async (req, res) => {
 
 
 
+const viewCount = asyncHandler(async (req, res) => {
+    const { VideoId } = req.params;
+    
+    // Use the unique ID from the logged-in user
+    // This is the most accurate way
+    const userId = req.user?._id || req.user?.email; 
+
+    if (!VideoId) return res.status(400).json({ message: "Video ID missing" });
+
+    // 1. Check if this user has already viewed this video recently
+    // We search for a "lock" cookie specifically for this User + Video combo
+    const cookieName = `viewed_${VideoId}_${userId}`;
+    
+    if (req.cookies[cookieName]) {
+        const video = await Video.findById(VideoId);
+        return res.status(200).json({ 
+            success: true, 
+            viewCount : video.viewCount, 
+            status: "already_counted" 
+        });
+    }
+
+    // 2. Increment view count in MongoDB
+    const updatedVideo = await Video.findByIdAndUpdate(
+        VideoId,
+        { $inc: { viewCount: 1 } },
+        { new: true }
+    );
+
+    // 3. Set the "Lock" cookie
+    res.cookie(cookieName, "true", { 
+        maxAge: 24 * 60 * 60 * 1000, // Lock for 24 hours
+        httpOnly: true,
+        
+    });
+
+    return res.status(200).json({
+        success: true,
+        viewCount: updatedVideo.viewCount
+    });
+});
+
+
+
 export {
     getAllvideos,
     publishVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishVideo
+    togglePublishVideo,
+    viewCount
 }

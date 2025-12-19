@@ -66,7 +66,7 @@ const VideoCard = ({ video }) => {
           </h3>
 
           <p className="text-md text-gray-400 mt-1 flex flex-wrap gap-2">
-            <span>{video.owner?.username || "Channel"}</span>
+            <span>{video.owner?.fullName || "Channel"}</span>
           </p>
 
           <p className="text-md text-gray-400 flex flex-wrap gap-2">
