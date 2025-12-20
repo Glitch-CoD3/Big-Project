@@ -3,6 +3,9 @@ import { ApiError } from "../utils/ApiError.js"
 import { uploadToCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.models.js"
+import ViewCache from "../utils/ViewCache.js";
+import { User } from "../models/user.models.js";
+
 
 
 //get all videos method written by chatgpt
@@ -107,9 +110,9 @@ const getVideoById = asyncHandler(async (req, res) => {
     }
 
     //Use Video.findById(videoId) to fetch the video.
-   const video = await Video.findById(videoId)
-    .populate("owner", "username email avatar fullName")
-    .lean();
+    const video = await Video.findById(videoId)
+        .populate("owner", "username email avatar fullName")
+        .lean();
 
 
     //Throw 404 if not found.
@@ -130,24 +133,24 @@ const updateVideo = asyncHandler(async (req, res) => {
 
     //update thambnail, title, description, tags
 
-    if(!videoId){
+    if (!videoId) {
         throw new ApiError(400, "Video ID not found in request params");
     }
     const video = Video.findById(videoId);
-    if(!video){
+    if (!video) {
         throw new ApiError(404, "Video not found");
     }
 
     //if thumbnail is there in request, upload to cloudinary
-    if(req.file){
+    if (req.file) {
         const thumbnailLocalPath = req.file.path;
 
-        if(!thumbnailLocalPath){
+        if (!thumbnailLocalPath) {
             throw new ApiError(400, "Thumbnail file is required");
         }
 
         const uploadedThumbnail = await uploadToCloudinary(thumbnailLocalPath);
-        if(!uploadedThumbnail.url){
+        if (!uploadedThumbnail.url) {
             throw new ApiError(500, "Failed to upload thumbnail");
         }
 
@@ -162,15 +165,15 @@ const updateVideo = asyncHandler(async (req, res) => {
                 }
             },
             {
-                new:true,
+                new: true,
             }
         ).select("-videoFile -duration -viewCount -owner -isPublished");
 
     }
 
     return res
-    .status(200)
-    .json(new ApiResponse(200, updateVideo, "Video updated successfully"));
+        .status(200)
+        .json(new ApiResponse(200, updateVideo, "Video updated successfully"));
 });
 
 
@@ -178,19 +181,19 @@ const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
     //delete video by id
-    if(!videoId){
+    if (!videoId) {
         throw new ApiError(400, "Video ID not found in request params");
     }
     const video = await Video.findById(videoId);
-    if (!video){
+    if (!video) {
         throw new ApiError(404, "Video not found!")
     }
 
     await Video.findByIdAndDelete(videoId);
 
     return res
-    .status(200)
-    .json(new ApiResponse(200, null , "Video deleted Successfully"));
+        .status(200)
+        .json(new ApiResponse(200, null, "Video deleted Successfully"));
 });
 
 
@@ -206,55 +209,73 @@ const togglePublishVideo = asyncHandler(async (req, res) => {
     await video.save();
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, video, "Publish status toggled")
-    );
+        .status(200)
+        .json(
+            new ApiResponse(200, video, "Publish status toggled")
+        );
 });
 
 
 
-const viewCount = asyncHandler(async (req, res) => {
-    const { VideoId } = req.params;
-    
-    // Use the unique ID from the logged-in user
-    // This is the most accurate way
-    const userId = req.user?._id || req.user?.email; 
 
-    if (!VideoId) return res.status(400).json({ message: "Video ID missing" });
 
-    // 1. Check if this user has already viewed this video recently
-    // We search for a "lock" cookie specifically for this User + Video combo
-    const cookieName = `viewed_${VideoId}_${userId}`;
-    
-    if (req.cookies[cookieName]) {
-        const video = await Video.findById(VideoId);
-        return res.status(200).json({ 
-            success: true, 
-            viewCount : video.viewCount, 
-            status: "already_counted" 
-        });
+const addView = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    // Check if req.user exists (from verifyJWT)
+    if (!req.user?._id) {
+        return res.status(401).json({ message: "Login to count view" });
     }
 
-    // 2. Increment view count in MongoDB
-    const updatedVideo = await Video.findByIdAndUpdate(
-        VideoId,
-        { $inc: { viewCount: 1 } },
-        { new: true }
-    );
+    const userId = req.user._id;
 
-    // 3. Set the "Lock" cookie
-    res.cookie(cookieName, "true", { 
-        maxAge: 24 * 60 * 60 * 1000, // Lock for 24 hours
-        httpOnly: true,
-        
-    });
+    const video = await Video.findById(videoId);
+    if (!video) return res.status(404).json({ message: "Video not found" });
 
-    return res.status(200).json({
-        success: true,
-        viewCount: updatedVideo.viewCount
-    });
+    // Use .some() with .toString() for a reliable unique check
+    const hasViewed = video.viewedBy.some(id => id.toString() === userId.toString());
+
+    if (hasViewed) {
+        return res.status(200).json({ success: true, message: "Already viewed" });
+    }
+
+    // 1. Add to in-memory cache for the global counter
+    ViewCache.incrementView(videoId, userId.toString());
+
+    // 2. Add to DB viewedBy list to prevent future counts
+    video.viewedBy.push(userId);
+    await video.save();
+
+    return res.status(200).json({ success: true, message: "Unique view added" });
 });
+// Remove (req, res) because setInterval doesn't provide them
+const flushViewsToDB = async () => {
+    // 1. Get the data and clear the cache immediately
+    const cachedViews = ViewCache.flushCache();
+
+    const videoIds = Object.keys(cachedViews);
+    if (videoIds.length === 0) return; // Don't hit DB if cache is empty
+
+    // 2. Use bulkWrite (Much faster than Promise.all for many updates)
+    const operations = videoIds.map(videoId => ({
+        updateOne: {
+            filter: { _id: videoId },
+            update: { $inc: { viewCount: cachedViews[videoId] } }
+        }
+    }));
+
+    try {
+        await Video.bulkWrite(operations);
+        console.log(`Successfully flushed ${videoIds.length} video(s) views to DB`);
+    } catch (err) {
+        console.error("Error flushing views:", err);
+
+        // OPTIONAL: If DB fails, put the counts back so they aren't lost
+        // for (const id in cachedViews) {
+        //    viewCache.incrementView(id, cachedViews[id]); 
+        // }
+    }
+};
 
 
 
@@ -265,5 +286,7 @@ export {
     updateVideo,
     deleteVideo,
     togglePublishVideo,
-    viewCount
+    addView,
+    flushViewsToDB
+
 }

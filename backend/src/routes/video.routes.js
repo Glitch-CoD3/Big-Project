@@ -6,6 +6,7 @@ import {
   publishVideo,
   togglePublishVideo,
   updateVideo,
+  addView
 } from "../controllers/video.controller.js";
 
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -29,6 +30,7 @@ router.get("/:videoId", getVideoById);
 
 router.use(verifyJWT);
 
+
 // Publish video
 router.post(
   "/",
@@ -49,7 +51,9 @@ router.patch(
   updateVideo
 );
 
+
 // Toggle publish
 router.patch("/:videoId/toggle/publish", togglePublishVideo);
+router.post('/:videoId/view', addView);
 
 export default router;

@@ -1,25 +1,26 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import AxiosInstance from "../api/AxiosInstance";
 import { CheckCircle2, ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
-
-const token = localStorage.getItem("accessToken");
 
 const Watch = () => {
   const { videoId } = useParams();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [view, setView] = useState(" ")
 
-  // 1. Fetch Video Data
+  // Track if we have already sent the view request for this specific video
+  const viewCounted = useRef(false);
+
   useEffect(() => {
     const fetchVideo = async () => {
       try {
+        const token = localStorage.getItem("accessToken");
         const res = await AxiosInstance.get(`/${videoId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setVideo(res.data.data);
-        console.log(res.data.data)
       } catch (err) {
         console.error("Failed to load video", err);
         setError("Failed to load video");
@@ -27,41 +28,60 @@ const Watch = () => {
         setLoading(false);
       }
     };
+
+    // Reset the tracker when the videoId changes
+    viewCounted.current = false;
     fetchVideo();
   }, [videoId]);
 
-  // 2. View Count Functionality (Triggered on Load)
-  useEffect(() => {
-    const updateViewCount = async () => {
-      try {
-        // We use a separate POST request for the view logic
-        // withCredentials: true allows the browser to handle the "lock" cookies
-        await AxiosInstance.post(`/${videoId}`, {}, { 
-          headers: { Authorization: `Bearer ${token}` },
-           
-        });
-      } catch (err) {
-        console.error("View count update failed", err);
+  // Function to call the unique view API
+  const handlePlay = async () => {
+    if (viewCounted.current) return; // Prevent spamming the API
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await AxiosInstance.post(`/${videoId}/view`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success && response.data.message === "Unique view added successfully") {
+        // Update UI instantly (Optimistic Update)
+        setVideo((prev) => ({ ...prev, viewCount: prev.viewCount + 1 }));
       }
-    };
 
-    if (videoId) {
-      updateViewCount();
+      viewCounted.current = true; // Mark as done for this session
+    } catch (err) {
+      // Fail silently to not disturb the viewer
+      console.error("View could not be counted:", err.response?.data?.message || err.message);
     }
-  }, [videoId]);
+  };
 
-  if (loading) return <p className="text-white">Loading...</p>;
-  if (!video) return <p className="text-white">Video not found</p>;
-  if (error) return <p className="text-red-500 pt-16 px-6">{error}</p>;
+  const formatViews = (count) => {
+    if (!count) return "0";
+
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (count >= 1000) {
+      return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return count.toString();
+  };
+
+
+  if (loading) return <p className="text-white p-10">Loading...</p>;
+  if (!video) return <p className="text-white p-10">Video not found</p>;
 
   return (
     <div className="pt-16 px-6 bg-black min-h-screen text-white flex flex-col gap-6">
+      {/* Video Player Section */}
       <div className="relative w-full max-h-[75vh] rounded-lg overflow-hidden bg-black shadow-lg flex justify-center items-center">
         {video.videoFile ? (
           <video
             src={video.videoFile}
             controls
             autoPlay
+            onPlay={handlePlay} // <-- Triggered when user clicks play
             className="w-full h-full object-contain bg-black"
           />
         ) : (
@@ -73,53 +93,41 @@ const Watch = () => {
         )}
       </div>
 
+      {/* Video Details Section */}
       <div className="bg-[#0f0f0f] text-white p-4 font-sans rounded-lg">
-        <h1 className="text-xl font-bold mb-3 line-clamp-2">
-          {video.title}
-        </h1>
+        <h1 className="text-xl font-bold mb-1">{video.title}</h1>
+        <p className="text-sm text-gray-400 mb-4">{formatViews(video.viewCount)} views</p>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center overflow-hidden border border-gray-700">
-              <img 
-                src={video.owner?.avatar || "avatar"} 
-                alt="Channel Logo" 
-              />
+            <div className="w-10 h-10 rounded-full bg-blue-900 overflow-hidden border border-gray-700">
+              <img src={video.owner?.avatar} alt="Channel" />
             </div>
-            <div className="flex flex-col mr-2">
+            <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-base">{video.owner?.fullName}</span>
+                <span className="font-semibold">{video.owner?.fullName}</span>
                 <CheckCircle2 size={14} className="text-gray-400" />
               </div>
-              <span className="text-xs text-gray-400">{video.subscribers || "277K"} subscribers</span>
+              <span className="text-xs text-gray-400">Subscribers</span>
             </div>
-            <button className="bg-white text-black px-4 py-2 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors ml-2">
+            <button className="bg-white text-black px-4 py-2 rounded-full font-medium text-sm ml-4">
               Subscribe
             </button>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-[#272727] rounded-full overflow-hidden">
-              <button className="flex items-center gap-2 px-4 py-2 hover:bg-[#3f3f3f] border-r border-gray-600 transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-[#3f3f3f] border-r border-gray-600">
                 <ThumbsUp size={18} />
-                <span className="text-sm font-medium">{video.likes || "0"}</span>
+                <span className="text-sm">{video.likes || 0}</span>
               </button>
-              <button className="px-4 py-2 hover:bg-[#3f3f3f] transition-colors">
+              <button className="px-4 py-2 hover:bg-[#3f3f3f]">
                 <ThumbsDown size={18} />
               </button>
             </div>
-
-            <button className="flex items-center gap-2 bg-[#272727] px-4 py-2 rounded-full hover:bg-[#3f3f3f] transition-colors">
+            <button className="flex items-center gap-2 bg-[#272727] px-4 py-2 rounded-full hover:bg-[#3f3f3f]">
               <Share2 size={18} />
-              <span className="text-sm font-medium">Share</span>
-            </button>
-
-            <button className="flex items-center gap-2 bg-[#272727] px-4 py-2 rounded-full hover:bg-[#3f3f3f] transition-colors">
-              <span className="text-sm font-medium">Ask</span>
-            </button>
-
-            <button className="p-2 bg-[#272727] rounded-full hover:bg-[#3f3f3f] transition-colors">
-              <MoreHorizontal size={18} />
+              <span className="text-sm">Share</span>
             </button>
           </div>
         </div>

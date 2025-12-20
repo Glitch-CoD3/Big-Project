@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import { flushViewsToDB } from './controllers/video.controller.js'
 
 
 const app = express()
@@ -18,6 +19,9 @@ app.use(cors({
 }))
 
 app.use(cookieParser())
+
+// Flush views every 1 minute (adjust as needed)
+setInterval(flushViewsToDB, 60 * 1000);
 
 
 //import routes
