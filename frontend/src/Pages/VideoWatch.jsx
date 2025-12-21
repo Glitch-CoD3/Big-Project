@@ -73,9 +73,9 @@ const Watch = () => {
   if (!video) return <p className="text-white p-10">Video not found</p>;
 
   return (
-    <div className="pt-16 px-6 bg-black min-h-screen text-white flex flex-col gap-6">
+    <div className="pt-2  bg-black min-h-screen text-white flex flex-col gap-6">
       {/* Video Player Section */}
-      <div className="relative w-full max-h-[75vh] rounded-lg overflow-hidden bg-black shadow-lg flex justify-center items-center">
+      <div className="relative w-full max-h-[73vh]  overflow-hidden bg-black shadow-lg flex justify-center items-center">
         {video.videoFile ? (
           <video
             src={video.videoFile}
@@ -130,6 +130,15 @@ const Watch = () => {
               <span className="text-sm">Share</span>
             </button>
           </div>
+        </div>
+
+        {/* //description box */}
+        <div className="mt-4 p-3 bg-white/10 hover:bg-white/[0.15] rounded-xl cursor-pointer transition-colors group">
+          <p className="text-sm font-semibold mb-1">Description</p>
+          <p className="text-sm text-gray-200 line-clamp-2 leading-relaxed">
+            {video.description || "In this video, we dive deep into the latest trends and features. Don't forget to like and subscribe for more content like this!"}
+          </p>
+          <button className="text-sm font-bold mt-2 text-white/70 group-hover:text-white">Show more</button>
         </div>
       </div>
     </div>
