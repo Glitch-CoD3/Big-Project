@@ -5,7 +5,8 @@ import {
   Mic,
   Video,
   Bell,
-  User
+  User,
+  Loader
 } from "lucide-react";
 import logo from "/image.png";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +37,11 @@ export const Header = ({ onToggleSidebar }) => {
   }, []);
 
 
-
+const handleUser = (e)=>{
+  setTimeout(() => {
+      navigate("/dashboard");
+    }, 100);
+}
 
 
   return (
@@ -96,7 +101,7 @@ export const Header = ({ onToggleSidebar }) => {
             <Bell size={22} />
           </button>
 
-          <button className="ml-2 rounded-full overflow-hidden w-8 h-8 sm:w-10 sm:h-10">
+          <button className="ml-2 rounded-full overflow-hidden w-8 h-8 sm:w-10 sm:h-10" onClick={handleUser}>
             <img
               src={avatar} // replace with actual user image
               alt="User Profile"

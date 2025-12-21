@@ -18,8 +18,10 @@ function App() {
 
   // PrivateRoute wrapper for authentication
   const PrivateRoute = ({ element }) => {
-    return isAuthenticated ? element : <Navigate to="/login" replace />
-  }
+  const hasToken = !!localStorage.getItem('accessToken');
+  // Use the token directly for the check to avoid waiting for state sync
+  return hasToken ? element : <Navigate to="/login" replace />;
+}
 
   // Layout wrapper: Header always visible
   const LayoutWithHeader = ({ children }) => (

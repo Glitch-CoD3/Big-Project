@@ -16,6 +16,13 @@ export const Sidebar = ({ mode, isOpen, onClose }) => {
     navigate("/login");
   };
 
+
+  const handleHome = (e) => {
+    setTimeout(() => {
+      navigate("/home");
+    }, 100);
+  }
+
   const isMini = mode === "mini";
 
   return (
@@ -49,7 +56,7 @@ export const Sidebar = ({ mode, isOpen, onClose }) => {
 
       {/* Sidebar Items */}
       <div className="flex-1 flex flex-col py-4 px-2 space-y-2 overflow-y-auto">
-        <SidebarItem icon="🏠" label="Home" showLabel={!isMini} />
+        <SidebarItem icon="🏠" label="Home" showLabel={!isMini}  onClick={handleHome}/>
         <SidebarItem icon="▶️" label="Shorts" showLabel={!isMini} />
         <SidebarItem icon="📺" label="Subscriptions" showLabel={!isMini} />
 
