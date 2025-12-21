@@ -61,11 +61,11 @@ const VideoCard = ({ video }) => {
         />
 
         <div className="flex-1">
-          <h3 className="text-sm font-medium leading-snug line-clamp-2">
+          <h3 className="text-[17px] font-bold leading-snug line-clamp-2">
             {video.title}
           </h3>
 
-          <p className="text-md text-gray-400 mt-1 flex flex-wrap gap-2">
+          <p className="text-md font-medium text-gray-400 mt-1 flex flex-wrap gap-2">
             <span>{video.owner?.fullName || "Channel"}</span>
           </p>
 

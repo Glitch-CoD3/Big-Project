@@ -8,7 +8,7 @@ export const RefreshHandler = ({setIsAuthenticated}) => {
     useEffect(() => {
         if (localStorage.getItem('accessToken')) {
             setIsAuthenticated(true);
-            if(location.pathname==='/' || location.pathname === "/login" || location.pathname === "/Signup"
+            if(location.pathname==='/' || location.pathname === "/login" || location.pathname === "/Signup" 
             ){
                 navigate("/home", {replace : false});
             }

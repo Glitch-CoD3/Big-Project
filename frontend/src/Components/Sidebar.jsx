@@ -1,87 +1,83 @@
-import { Home } from "lucide-react";
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { handleSuccess } from "../utils/ApiError";
 
-export const Sidebar = () => {
-
+export const Sidebar = ({ mode, isOpen, onClose }) => {
   const navigate = useNavigate();
   const [LogedInuser, setLogedInuser] = useState("");
 
   useEffect(() => {
-    const name = localStorage.getItem("name");
-    setLogedInuser(`${name}`);
+    setLogedInuser(localStorage.getItem("name") || "");
   }, []);
 
-  const handleLogout = (e) => {
-    localStorage.removeItem("user")
-    localStorage.removeItem("accessToken")
-    localStorage.removeItem("refreshToken")
+  const handleLogout = () => {
+    localStorage.clear();
     handleSuccess("Logged out successfully");
+    navigate("/login");
+  };
 
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
-  }
+  const isMini = mode === "mini";
 
   return (
-    <aside className="fixed top-14 left-0 h-[calc(100vh-3.5rem)] w-60 bg-gray-900 border-r hidden md:block">
+    <aside
+      className={`
+    ${isMini ? "hidden md:flex w-20 fixed top-0 z-30" : "fixed w-60 top-0 z-50"}
+    h-screen  /* Full screen height */
+    bg-gray-900 border-r
+    flex flex-col
+    transition-transform duration-300
+    ${!isMini && (isOpen ? "translate-x-0" : "-translate-x-full")}
+  `}
+    >
+      {/* Header: Logo + Menu Toggle */}
+      {!isMini && (
+        <div className="flex items-center justify-between px-6 py-3 border-b border-gray-700">
+          {/* Menu Icon on the left */}
+          <button
+            onClick={onClose}
+            className="p-1 rounded hover:bg-gray-700 transition-colors"
+          >
+            <span className="text-2xl">☰</span>
+          </button>
 
-      <div className="h-full overflow-y-auto px-2 py-3 space-y-6">
+          {/* Logo on the right */}
+          <div className="text-xl font-bold text-white">
+            <img src="/logo.png" alt="Logo" className="h-6 w-auto" />
+          </div>
+        </div>
+      )}
 
-        {/* PRIMARY */}
-        <nav className="space-y-1">
-          <SidebarItem label="Home" icon="🏠" active />
-          <SidebarItem label="Shorts" icon="▶️" />
-          <SidebarItem label="Subscriptions" icon="📺" />
-        </nav>
+      {/* Sidebar Items */}
+      <div className="flex-1 flex flex-col py-4 px-2 space-y-2 overflow-y-auto">
+        <SidebarItem icon="🏠" label="Home" showLabel={!isMini} />
+        <SidebarItem icon="▶️" label="Shorts" showLabel={!isMini} />
+        <SidebarItem icon="📺" label="Subscriptions" showLabel={!isMini} />
 
-        <hr />
+        <hr className="border-gray-700 my-2" />
 
-        {/* YOU */}
-        <nav className="space-y-1">
-          <SidebarItem label={LogedInuser} icon="👤" active />
-          <SidebarItem label="History" icon="🕒" />
-          <SidebarItem label="Playlists" icon="📂" />
-          <SidebarItem label="Your videos" icon="🎥" />
-          <SidebarItem label="Watch later" icon="⏱️" />
-          <SidebarItem label="Liked videos" icon="👍" />
-        </nav>
+        <SidebarItem icon="👤" label={LogedInuser} showLabel={!isMini} />
+        <SidebarItem icon="🕒" label="History" showLabel={!isMini} />
+        <SidebarItem icon="👍" label="Liked videos" showLabel={!isMini} />
 
-        <hr />
+        <hr className="border-gray-700 my-2" />
 
-        {/* EXPLORE */}
-        <nav className="space-y-1">
-          <SidebarItem label="Trending" icon="🔥" />
-          <SidebarItem label="Music" icon="🎵" />
-          <SidebarItem label="Gaming" icon="🎮" />
-          <SidebarItem label="News" icon="📰" />
-          <SidebarItem label="Sports" icon="🏆" />
-          <SidebarItem label="logOut" icon="😢" onClick={handleLogout} />
-        </nav>
-
+        <SidebarItem
+          icon="😢"
+          label="Logout"
+          showLabel={!isMini}
+          onClick={handleLogout}
+        />
       </div>
     </aside>
-
   );
 };
 
-/* ---------------------------------- */
-/* Sidebar Item Component              */
-/* ---------------------------------- */
-
-const SidebarItem = ({ icon, label, active, onClick }) => {
-  return (
-    <div
-      onClick={onClick}
-      className={`flex items-center gap-4 px-3 py-2 rounded-lg cursor-pointer
-        ${active ? "bg-gray-700 font-medium" : "hover:bg-gray-700"}`}
-    >
-      <span className="text-lg">{icon}</span>
-      <span className="text-sm">{label}</span>
-      
-    </div>
-    
-  );
-};
+const SidebarItem = ({ icon, label, showLabel, onClick }) => (
+  <div
+    onClick={onClick}
+    className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+  >
+    <div className="flex justify-center w-6 text-2xl">{icon}</div>
+    {showLabel && <span className="text-sm whitespace-nowrap">{label}</span>}
+  </div>
+);
