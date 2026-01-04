@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.models.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { Subscription } from "../models/subcription.model.js";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 
@@ -355,81 +356,55 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-    const { username } = req.params    //user find from URL
-    if (!username?.trim()) {
-        throw new ApiError(400, "user name is missing");
+  const { username } = req.params;
+  if (!username?.trim()) throw new ApiError(400, "username is missing");
+
+  const userId = req.user?._id; // current logged-in user
+
+  const channel = await User.aggregate([
+    { $match: { username: username.toLowerCase() } },
+
+    // subscribers: people who subscribed to this user
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers"
+      }
+    },
+
+    // subscribedTo: channels this user subscribed to
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo"
+      }
+    },
+
+    {
+      $addFields: {
+        subscribersCount: { $size: "$subscribers" },
+        channelsSubscribeToCount: { $size: "$subscribedTo" }
+      }
     }
+  ]);
 
-    //aggregation
-    const channel = await User.aggregate([
-        {
-            $match: {
-                username: username?.toLowerCase()
-            }
-        },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "channel",
-                as: "subscribers"
-            }
-        },
+  if (!channel?.length) throw new ApiError(404, "Channel doesn't exist");
 
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo"
-            }
-        },
+  // Handle isSubscribed outside aggregation
+  const ch = channel[0];
+  const isSubscribed = ch.subscribers.some(
+    s => s.subscriber.toString() === userId?.toString()
+  );
 
-        {
-            $addFields: {
-                subcribersCount: {
-                    $size: "$subscribers"  //use dollar sign bcz its a filed.
-                },
+  return res.status(200).json(
+    new ApiResponse(200, { ...ch, isSubscribed }, "User channel fetched successfully")
+  );
+});
 
-                channelsSubscribeToCount: {
-                    $size: "$subscribedTo"
-                },
-
-                isSubscribed: {
-
-                    $cond: {
-                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
-                        then: true,
-                        else: false
-                    }
-                }
-            }
-        },
-
-        {
-            $project: {
-                fullName: 1,
-                username: 1,
-                subcribersCount: 1,
-                channelsSubscribeToCount: 1,
-                isSubscribed: 1,
-                avatar: 1,
-                coverImage: 1,
-                email: 1
-            }
-        }
-    ])
-
-    if (!channel?.length) {
-        throw new ApiError(401, "Channel dosen't exist")
-    }
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, channel[0], "user channel fatched successfully")
-        )
-})
 
 
 const getWatchHistory = asyncHandler(async (req, res) => {
