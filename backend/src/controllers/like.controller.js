@@ -10,7 +10,25 @@ import { Video } from "../models/video.models.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    //TODO: toggle like on tweet
+    const userId = req.user._id;
+
+    // Check if the video exists
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
+    // Check if the like already exists
+    const existingLike = await Like.findOne({ user: userId, video: videoId });
+    if (existingLike) {
+        // If it exists, remove the like (unlike)
+        await existingLike.remove();
+        return res.status(200).json(new ApiResponse(200, "Video unliked successfully"));
+    } else {
+        // If it doesn't exist, create a new like
+        const newLike = new Like({  user: userId, video: videoId });
+        await newLike.save();
+        return res.status(200).json(new ApiResponse(200, "Video liked successfully"));
+    }
 });
 
 

@@ -384,10 +384,20 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       }
     },
 
+    // count fields
     {
       $addFields: {
         subscribersCount: { $size: "$subscribers" },
         channelsSubscribeToCount: { $size: "$subscribedTo" }
+      }
+    },
+
+    // exclude sensitive fields
+    {
+      $project: {
+        password: 0,
+        refreshToken: 0,
+        __v: 0
       }
     }
   ]);
@@ -404,6 +414,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     new ApiResponse(200, { ...ch, isSubscribed }, "User channel fetched successfully")
   );
 });
+
 
 
 

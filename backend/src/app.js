@@ -30,6 +30,7 @@ import videoRouter from "./routes/video.routes.js"
 import commentRoutes from "./routes/comment.routes.js"
 import playlistRoutes from "./routes/playlist.routes.js"
 import subscriptionRoutes from "./routes/subscription.route.js"
+import likeRoutes from "./routes/like.routes.js"
 
 //use routes
 
@@ -41,8 +42,11 @@ import subscriptionRoutes from "./routes/subscription.route.js"
 app.use("/api/v1/users", userRoutes)
 app.use("/api/v1/playlists", playlistRoutes)  // put this before :videoId
 app.use("/api/v1/", videoRouter)
-app.use("/api/v1/:videoId/", commentRoutes);
 app.use("/api/v1/subscriptions", subscriptionRoutes)
+
+
+app.use("/api/v1/:videoId/", commentRoutes);
+app.use("/api/v1/:videoId/", likeRoutes)
 
 
 

@@ -38,6 +38,8 @@ const Dashboard = () => {
   const [videosLoading, setVideosLoading] = useState(false); // Separate loading for videos
   const [totalVideos, setTotalVideos] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriber, setSubscriber] = useState(0);
+  const [subscribeTo, setSubscribeTo] = useState(0);
 
 
 
@@ -51,35 +53,35 @@ const Dashboard = () => {
 
 
   // Fetch channel info
-  const fetchChannel = useCallback(async () => {
-    try {
-      const userStr = localStorage.getItem("user");
-      if (!userStr) {
-        setLoading(false);
-        return;
-      }
+ const fetchChannel = useCallback(async () => {
+  const username = localStorage.getItem("username");
+  const token = localStorage.getItem("accessToken");
 
-      const userData = JSON.parse(userStr);
-      const username = userData.user?.username || userData.username;
+  if (!username || !token) {
+    setLoading(false);
+    return;
+  }
 
-      const response = await AxiosInstance.get(`/users/c/${username}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-        }
-      });
+  try {
+    const response = await AxiosInstance.get(`/users/c/${username}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      setUserData(response.data.data);
-      // console.log("Channel Data:", response.data.data);
-      setIsSubscribed(response.data.data.isSubscribed);
+    const channelData = response.data.data;
 
+    setUserData(channelData);
+    setIsSubscribed(channelData?.isSubscribed ?? false);
+    setSubscriber(channelData?.subscribersCount ?? 0);
+    setSubscribeTo(channelData?.channelsSubscribeToCount ?? 0);
+  } catch (error) {
+    console.error("Failed to fetch channel", error);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
-
-    } catch (err) {
-      console.error("Fetch Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
 
   // Fetch user's videos
@@ -90,13 +92,16 @@ const Dashboard = () => {
     setVideosLoading(true);
     try {
       const token = localStorage.getItem("accessToken");
+      if(!token){
+        return;
+      }
       // Fetch videos by user ID or username
       const response = await AxiosInstance.get(`user/${userData._id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      
       setVideos(response.data.data.videos);
       setTotalVideos(response.data.data.total);
       // console.log("User Videos:", response.data.data);
@@ -105,7 +110,7 @@ const Dashboard = () => {
     } finally {
       setVideosLoading(false);
     }
-  }, [userData]);
+  }, [userData?._id]);
 
   useEffect(() => {
     fetchChannel();
@@ -122,26 +127,26 @@ const Dashboard = () => {
     return <LoadingDots message="Loading Details" />
   }
 
-  // channel subscribe toggle button
-  const handleSubscribeToggle = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      console.error("User not authenticated");
-      return;
-    }
-  try {
-    if (isSubscribed) {
-      await AxiosInstance.post("/subscriptions/unsubscribe", { channelId: userData._id });
-    } else {
-      await AxiosInstance.post("/subscriptions/subscribe", { channelId: userData._id });
-    }
 
-    // Optimistic UI update
-    setIsSubscribed(prev => !prev);
-  } catch (error) {
-    console.error("Subscription failed", error);
-  }
-};
+
+  // channel subscribe toggle button
+   const handleSubscribeToggle = async () => {
+    try {
+      if (isSubscribed) {
+        await AxiosInstance.post('/subscriptions/unsubscribe', {
+          channelId: userData?._id,
+        });
+      } else {
+        await AxiosInstance.post('/subscriptions/subscribe', {
+          channelId: userData?._id,
+        });
+      }
+
+      setIsSubscribed((prev) => !prev);
+    } catch (error) {
+      console.error('Subscription failed', error);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#0f0f0f] text-white font-sans overflow-hidden">
@@ -195,13 +200,15 @@ const Dashboard = () => {
             <div className="flex flex-wrap items-center gap-2 text-[15px] text-zinc-400 mb-3">
               <span className="font-medium">@{userData?.username}</span>
               <span>•</span>
-              <span>{userData?.subcribersCount} subscribers</span>
+              <span>{subscriber} subscribers</span>
               <span>•</span>
               <span>{totalVideos} videos</span> {/* Dynamic video count */}
+              <span>•</span>
+              <span>{subscribeTo} Subscribe </span>
             </div>
 
             <div className="flex items-center gap-2 text-zinc-400 text-[15px] mb-5 cursor-pointer hover:text-white transition-colors">
-              <p className="line-clamp-1">Mastering Web Development one byte at a time. Join us for React, Node, and Tailwind tutorials...</p>
+              <p className="line-clamp-1">Mastering Web Development one byte at a time. Join us for React, Node, and Tailwind tutorials...</p><button>more</button>
               <ChevronRight size={18} />
             </div>
 
