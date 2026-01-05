@@ -3,7 +3,7 @@ import { Subscription } from "../models/subcription.model.js";
 // Subscribe to a channel
 export const subscribe = async (req, res) => {
   try {
-    const { channelId } = req.body;
+    const { channelId } = req.params;
     const subscriberId = req.user._id;
 
     if (!channelId) return res.status(400).json({ message: "Channel ID is required" });
@@ -29,7 +29,7 @@ export const subscribe = async (req, res) => {
 // Unsubscribe from a channel
 export const unsubscribe = async (req, res) => {
   try {
-    const { channelId } = req.body;
+    const { channelId } = req.params;
     const subscriberId = req.user.id;
 
     const deleted = await Subscription.findOneAndDelete({
@@ -53,7 +53,7 @@ export const getSubscribers = async (req, res) => {
   try {
     const { channelId } = req.params;
 
-    const subscribers = await Subscription.find({ channel: channelId }).populate("subscriber", "username avatar");
+    const subscribers = await Subscription.find({ channel: channelId }).populate("subscriber", "fullName avatar");
 
     res.status(200).json({ subscribers });
   } catch (err) {

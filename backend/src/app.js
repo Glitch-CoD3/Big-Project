@@ -42,11 +42,12 @@ import likeRoutes from "./routes/like.routes.js"
 app.use("/api/v1/users", userRoutes)
 app.use("/api/v1/playlists", playlistRoutes)  // put this before :videoId
 app.use("/api/v1/", videoRouter)
-app.use("/api/v1/subscriptions", subscriptionRoutes)
+
 
 
 app.use("/api/v1/:videoId/", commentRoutes);
 app.use("/api/v1/:videoId/", likeRoutes)
+app.use("/api/v1/subscriptions", subscriptionRoutes)
 
 
 
