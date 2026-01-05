@@ -131,22 +131,41 @@ const Dashboard = () => {
 
   // channel subscribe toggle button
    const handleSubscribeToggle = async () => {
-    try {
-      if (isSubscribed) {
-        await AxiosInstance.post('/subscriptions/unsubscribe', {
-          channelId: userData?._id,
-        });
-      } else {
-        await AxiosInstance.post('/subscriptions/subscribe', {
-          channelId: userData?._id,
-        });
-      }
+  try {
+    const token = localStorage.getItem("accessToken"); // get JWT
 
-      setIsSubscribed((prev) => !prev);
-    } catch (error) {
-      console.error('Subscription failed', error);
+    if (!token) {
+      console.error("User not authenticated");
+      return;
     }
-  };
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`, // attach token
+      },
+    };
+
+    if (isSubscribed) {
+      await AxiosInstance.post(
+        `/subscriptions/${userData?._id}/unsubscribe`,
+        {}, // body can be empty
+        config
+      );
+    } else {
+      await AxiosInstance.post(
+        `/subscriptions/${userData?._id}/subscribe`,
+        {}, // body can be empty
+        config
+      );
+    }
+
+    // Optimistic UI update
+    setIsSubscribed(prev => !prev);
+  } catch (error) {
+    console.error("Subscription failed", error.response?.data || error.message);
+  }
+};
+
 
   return (
     <div className="flex h-screen bg-[#0f0f0f] text-white font-sans overflow-hidden">

@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import AxiosInstance from "../api/AxiosInstance";
 import { CheckCircle2, ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import Header from "../Components/Header";
+import SubscribeButton from '../Components/SubscribeButton';
+
 
 const Watch = () => {
   const { videoId } = useParams();
@@ -10,6 +12,8 @@ const Watch = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState(" ")
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  
 
   // Track if we have already sent the view request for this specific video
   const viewCounted = useRef(false);
@@ -70,6 +74,8 @@ const Watch = () => {
   };
 
 
+
+
   if (loading) return <p className="text-white p-10">Loading...</p>;
   if (!video) return <p className="text-white p-10">Video not found</p>;
 
@@ -94,6 +100,9 @@ const Watch = () => {
         )}
       </div>
 
+
+      
+
       {/* Video Details Section */}
       <div className="bg-[#0f0f0f] text-white p-4 font-sans rounded-lg">
         <h1 className="text-xl font-bold mb-1">{video.title}</h1>
@@ -110,10 +119,13 @@ const Watch = () => {
                 <CheckCircle2 size={14} className="text-gray-400" />
               </div>
               <span className="text-xs text-gray-400">Subscribers</span>
+
             </div>
-            <button className="bg-white text-black px-4 py-2 rounded-full font-medium text-sm ml-4">
-              Subscribe
-            </button>
+            
+              <SubscribeButton
+                isSubscribed={isSubscribed}
+              />
+            
           </div>
 
           <div className="flex items-center gap-2">
